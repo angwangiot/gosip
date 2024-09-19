@@ -23,6 +23,7 @@ type Layer interface {
 	// Responses returns channel with not matched responses.
 	Responses() <-chan sip.Response
 	Errors() <-chan error
+	DeleteTransaction(msg sip.Message) error
 }
 
 type layer struct {
@@ -170,6 +171,23 @@ func (txl *layer) Respond(res sip.Response) (sip.ServerTransaction, error) {
 	}
 
 	return tx, nil
+}
+
+func (txl *layer) DeleteTransaction(msg sip.Message) error {
+	select {
+	case <-txl.canceled:
+		return fmt.Errorf("transaction layer is canceled")
+	default:
+	}
+
+	tx, err := txl.getServerTx(msg)
+	if err != nil {
+		return err
+	}
+
+	tx.Terminate()
+
+	return nil
 }
 
 func (txl *layer) listenMessages() {

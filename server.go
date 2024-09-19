@@ -43,6 +43,7 @@ type Server interface {
 		reason, body string,
 		headers []sip.Header,
 	) (sip.ServerTransaction, error)
+	DeleteTransaction(msg sip.Message) error
 }
 
 type TransportLayerFactory func(
@@ -590,6 +591,10 @@ func (srv *server) getAllowedMethods() []sip.RequestMethod {
 	srv.hmu.RUnlock()
 
 	return methods
+}
+
+func (srv *server) DeleteTransaction(msg sip.Message) error {
+	return srv.tx.DeleteTransaction(msg)
 }
 
 type sipTransport struct {
